@@ -11,9 +11,11 @@ sensors | grep 'Tsensor'
 echo nvme:
 sensors | grep Composite
 
-echo RX570:
+echo RX6800 XT:
 sensors | grep edge
 sensors | grep fan1
+sensors | grep junction
+sensors | grep mem
 sensors | grep power1
 
 echo HD3600:
