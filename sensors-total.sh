@@ -1,22 +1,24 @@
 #!/bin/bash
 
+sensors=$(sensors)
+
 echo R5 2600:
 lscpu | grep 'CPU M'
-cat /proc/cpuinfo | grep 'cpu MHz'
-sensors | grep Tdie
-sensors | grep 'CPU Fan'
-sensors | grep 'Chassis Fan'
-sensors | grep 'Tsensor'
+grep 'cpu MHz' /proc/cpuinfo
+grep Tdie <<< "$sensors"
+grep 'CPU Fan' <<< "$sensors"
+grep 'Chassis Fan' <<< "$sensors"
+grep Tsensor <<< "$sensors"
 
 echo nvme:
-sensors | grep Composite
+grep Composite <<< "$sensors"
 
 echo RX6800 XT:
-sensors | grep edge
-sensors | grep fan1
-sensors | grep junction
-sensors | grep mem
-sensors | grep power1
+grep edge <<< "$sensors"
+grep fan1 <<< "$sensors"
+grep junction <<< "$sensors"
+grep mem <<< "$sensors"
+grep power1 <<< "$sensors"
 
 echo HD3600:
-sensors | grep temp1
+grep temp1 <<< "$sensors"
