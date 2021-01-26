@@ -2,25 +2,73 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import asyncio
 import os
 import sys
 import subprocess
 
-inputdir = ''
-outputdir = ''
+
+def oldConvert():
+    filename = file.name.rsplit(".", 1)[0]
+    tempFolder = 'convertTemp' + filename
+    subprocess.run(["7z", "x", file, "-o" + tempFolder])
+    subprocess.run(["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", outputDir + filename, "-r",
+                    "./" + tempFolder + "/*"])
+    subprocess.run(["rm", "-r", tempFolder])
+
+
+async def decompressionWorker(name, decompressionQueue, compressionQueue):
+    while True:
+        # Get a "work item" out of the queue.
+        file = await decompressionQueue.get()
+
+        # do something
+        filename = file.name.rsplit(".", 1)[0]
+        tempFolder = 'convertTemp' + filename
+        subprocess.run(["7z", "x", file, "-o" + tempFolder])
+
+        await compressionQueue.put(file)
+        # Notify the queue that the "work item" has been processed.
+        decompressionQueue.task_done()
+
+async def compressionWorker(name, compressionQueue, outputDir):
+    while True:
+        # Get a "work item" out of the queue.
+        file = await compressionQueue.get()
+
+        # do something
+        filename = file.name.rsplit(".", 1)[0]
+        tempFolder = 'convertTemp' + filename
+        subprocess.run(
+            ["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", outputDir + filename, "-r",
+             "./" + tempFolder + "/*"])
+        subprocess.run(["rm", "-r", tempFolder])
+        
+        # Notify the queue that the "work item" has been processed.
+        compressionQueue.task_done()
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    inputdir = sys.argv[1]
-    outputdir = sys.argv[2]
-    print('Inputdir: ', os.listdir(inputdir), ' Outputdir: ', os.listdir(outputdir))
+async def main():
+    decompressionQueue = asyncio.Queue()
+    compressionQueue = asyncio.Queue(2)
 
-    for file in os.scandir(inputdir):
-        filename = file.name.rsplit(".", 1)[0]
-        tempfolder = 'converTemp'+filename
-        subprocess.run(["7z", "x", file, "-o"+tempfolder])
-        subprocess.run(["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", outputdir+filename,
-                        "-r", "./"+tempfolder+"/*"])
-        subprocess.run(["rm", "-r", tempfolder])
+    inputDir = "/home/heckstrahler/Desktop/test"  # sys.argv[1]
+    outputDir = "/home/heckstrahler/Desktop/test"  #sys.argv[2]
+    for file in os.scandir(inputDir):
+        decompressionQueue.put_nowait(file)
+        # oldConvert()
+        
+    decompressionTask = asyncio.create_task(decompressionWorker(f'worker-decompression', decompressionQueue, compressionQueue))
+    compressionTasks = []
+    for i in range(2):
+        task = asyncio.create_task(compressionWorker(f'worker-{i}-compression', compressionQueue, outputDir))
+        compressionTasks.append(task)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    await decompressionQueue.join()
+    decompressionTask.cancel
+    
+    await compressionQueue.join()
+    for task in compressionTasks:
+        task.cancel
+
+asyncio.run(main())
