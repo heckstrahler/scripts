@@ -8,13 +8,13 @@ import sys
 import subprocess
 
 
-def oldConvert():
-    filename = file.name.rsplit(".", 1)[0]
-    tempFolder = 'convertTemp' + filename
-    subprocess.run(["7z", "x", file, "-o" + tempFolder])
-    subprocess.run(["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", outputDir + filename, "-r",
-                    "./" + tempFolder + "/*"])
-    subprocess.run(["rm", "-r", tempFolder])
+# def oldConvert():
+#     filename = file.name.rsplit(".", 1)[0]
+#     tempFolder = 'convertTemp' + filename
+#     subprocess.run(["7z", "x", file, "-o" + tempFolder])
+#     subprocess.run(["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", outputDir + filename, "-r",
+#                     "./" + tempFolder + "/*"])
+#     subprocess.run(["rm", "-r", tempFolder])
 
 
 async def decompressionWorker(name, decompressionQueue, compressionQueue):
@@ -53,7 +53,7 @@ async def main():
     compressionQueue = asyncio.Queue(2)
 
     inputDir = "/home/heckstrahler/Desktop/test"  # sys.argv[1]
-    outputDir = "/home/heckstrahler/Desktop/test"  #sys.argv[2]
+    outputDir = "/home/heckstrahler/Desktop/test/done/"  #sys.argv[2]
     for file in os.scandir(inputDir):
         decompressionQueue.put_nowait(file)
         # oldConvert()
