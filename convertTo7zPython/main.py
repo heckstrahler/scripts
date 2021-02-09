@@ -16,7 +16,7 @@ def decompression(name, inputQueue, outputQueue):
         subprocess.run(["echo", f'{name} is decompressing {inputFile.name}'])
         filename = inputFile.name.rsplit(".", 1)[0]
         tempFolder = f'convertTemp{filename}'
-        subprocess.run(["7z", "x", inputFile, f'-o{tempFolder}'], stdout=subprocess.DEVNULL)
+        subprocess.run(["nice", "-n", "5", "7z", "x", inputFile, f'-o{tempFolder}'], stdout=subprocess.DEVNULL)
         outputQueue.put(inputFile)
         subprocess.run(["echo", f'{name} finished decompressing {inputFile.name}'])
         inputQueue.task_done()
@@ -29,8 +29,8 @@ def compression(name, inputQueue, directory):
         filename = inputFile.name.rsplit(".", 1)[0]
         tempFolder = f'convertTemp{filename}'
         subprocess.run(
-            ["7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on", f'{directory}{filename}', "-r",
-             f'./{tempFolder}/*'], stdout=subprocess.DEVNULL)
+            ["nice", "-n", "5", "7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on",
+             f'{directory}{filename}', "-r", f'./{tempFolder}/*'], stdout=subprocess.DEVNULL)
         subprocess.run(["rm", "-r", tempFolder])
         subprocess.run(["echo", f'{name} finished compressing {inputFile.name}'])
         inputQueue.task_done()
