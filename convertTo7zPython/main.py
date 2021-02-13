@@ -9,8 +9,13 @@ import os
 import sys
 import subprocess
 
+totalFiles = 0
+totalFilesDecompressed = 0
+totalFilesCompressed = 0
+
 
 def decompression(name, inputQueue, outputQueue):
+    global totalFilesDecompressed
     while True:
         inputFile = inputQueue.get()
         subprocess.run(["echo", f'{name} is decompressing {inputFile.name}'])
@@ -18,11 +23,14 @@ def decompression(name, inputQueue, outputQueue):
         tempFolder = f'convertTemp{filename}'
         subprocess.run(["nice", "-n", "5", "7z", "x", inputFile, f'-o{tempFolder}'], stdout=subprocess.DEVNULL)
         outputQueue.put(inputFile)
-        subprocess.run(["echo", f'{name} finished decompressing {inputFile.name}'])
+        totalFilesDecompressed += 1
+        subprocess.run(
+            ["echo", f'{totalFilesDecompressed}/{totalFiles} {name} finished decompressing {inputFile.name}'])
         inputQueue.task_done()
 
 
 def compression(name, inputQueue, directory):
+    global totalFilesCompressed
     while True:
         inputFile = inputQueue.get()
         subprocess.run(["echo", f'{name} is compressing {inputFile.name}'])
@@ -32,7 +40,8 @@ def compression(name, inputQueue, directory):
             ["nice", "-n", "5", "7z", "a", "-t7z", "-m0=lzma2", "-mx=9", "-mfb=64", "-md=64m", "-ms=on",
              f'{directory}{filename}', "-r", f'./{tempFolder}/*'], stdout=subprocess.DEVNULL)
         subprocess.run(["rm", "-r", tempFolder])
-        subprocess.run(["echo", f'{name} finished compressing {inputFile.name}'])
+        totalFilesCompressed += 1
+        subprocess.run(["echo", f'{totalFilesCompressed}/{totalFiles} {name} finished compressing {inputFile.name}'])
         inputQueue.task_done()
 
 
@@ -44,6 +53,7 @@ if __name__ == "__main__":
     outputDir = sys.argv[2]
     for file in os.scandir(inputDir):
         decompressionQueue.put(file)
+        totalFiles += 1
 
     decompressionThread = threading.Thread(target=decompression,
                                            args=(f'decompression-worker', decompressionQueue, compressionQueue))
