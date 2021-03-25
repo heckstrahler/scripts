@@ -2,7 +2,7 @@
 
 sensors=$(sensors)
 
-echo R5 2600:
+head -n10 /proc/cpuinfo | grep 'model name'
 lscpu | grep 'CPU M'
 grep 'cpu MHz' /proc/cpuinfo
 grep Tdie <<< "$sensors"
@@ -19,6 +19,3 @@ grep fan1 <<< "$sensors"
 grep junction <<< "$sensors"
 grep mem <<< "$sensors"
 grep power1 <<< "$sensors"
-
-echo HD3600:
-grep temp1 <<< "$sensors"
