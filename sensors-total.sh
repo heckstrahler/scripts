@@ -5,7 +5,7 @@ sensors=$(sensors)
 head -n10 /proc/cpuinfo | grep 'model name'
 lscpu | grep 'CPU M'
 grep 'cpu MHz' /proc/cpuinfo
-grep Tdie <<< "$sensors"
+grep 'CPU T' <<< "$sensors"
 grep 'CPU Fan' <<< "$sensors"
 grep 'Chassis Fan' <<< "$sensors"
 grep Tsensor <<< "$sensors"
