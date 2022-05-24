@@ -1,6 +1,6 @@
 # This Python script, converts the content a folder to .7z archives through utilizing 7zip with lzma2:9. The folder
 # must ONLY contain archives supported by 7zip and nothing else. To increase overall cpu utilization decompression
-# and compression runs in parallel with the decompression part being additionally multi threaded. However to decrease
+# and compression runs in parallel with the compression part being additionally multi threaded. However to decrease
 # the read load on in input drive the decompression part in single threaded. First argument is the input folder, the
 # second argument is the output folder.
 import queue
